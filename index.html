@@ -1,0 +1,1226 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Driver.js — 产品引导与功能介绍库 | 中文文档</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Driver.js -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@latest/dist/driver.css" />
+  <script src="https://cdn.jsdelivr.net/npm/driver.js@latest/dist/driver.js.iife.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+SC:wght@300;400;500;600;700;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            ink: '#0f0f0e',
+            paper: '#faf9f5',
+            mid: '#b0aea5',
+            subtle: '#e8e6dc',
+            accent: '#d97757',
+            accentDark: '#c4664a',
+            code: '#1e1e1e',
+            codeGreen: '#6a9955',
+            codeBlue: '#569cd6',
+            codeYellow: '#dcdcaa',
+            codeOrange: '#ce9178',
+            codePurple: '#c586c0',
+            codeComment: '#6a9955',
+          },
+          fontFamily: {
+            display: ['"Space Grotesk"', 'sans-serif'],
+            body: ['"Noto Sans SC"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+        },
+      },
+    }
+  </script>
+  <style>
+    :root {
+      --accent: #d97757;
+      --ink: #0f0f0e;
+      --paper: #faf9f5;
+    }
+
+    * { scrollbar-width: thin; scrollbar-color: var(--accent) transparent; }
+    html { scrollbar-color: var(--accent) transparent; }
+
+    body {
+      font-family: 'Noto Sans SC', sans-serif;
+      background: var(--paper);
+      color: var(--ink);
+    }
+
+    .font-display { font-family: 'Space Grotesk', sans-serif; }
+    .font-mono { font-family: 'JetBrains Mono', monospace; }
+
+    /* Grain overlay */
+    .grain::before {
+      content: '';
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 100;
+    }
+
+    /* Smooth fade-in */
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .fade-in-up {
+      animation: fadeInUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      opacity: 0;
+    }
+    .delay-1 { animation-delay: 0.1s; }
+    .delay-2 { animation-delay: 0.2s; }
+    .delay-3 { animation-delay: 0.3s; }
+    .delay-4 { animation-delay: 0.4s; }
+    .delay-5 { animation-delay: 0.5s; }
+
+    /* Code block syntax highlighting */
+    .token-keyword { color: #c586c0; }
+    .token-string { color: #ce9178; }
+    .token-function { color: #dcdcaa; }
+    .token-variable { color: #9cdcfe; }
+    .token-comment { color: #6a9955; font-style: italic; }
+    .token-property { color: #9cdcfe; }
+    .token-punctuation { color: #d4d4d4; }
+    .token-number { color: #b5cea8; }
+    .token-operator { color: #d4d4d4; }
+    .token-import { color: #c586c0; }
+    .token-class { color: #4ec9b0; }
+    .token-tag { color: #569cd6; }
+
+    /* Nav scroll effect */
+    .nav-scrolled {
+      background: rgba(250, 249, 245, 0.85) !important;
+      backdrop-filter: blur(16px) !important;
+      border-bottom: 1px solid rgba(176, 174, 165, 0.2) !important;
+    }
+
+    /* Floating badge animation */
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-8px); }
+    }
+    .float { animation: float 3s ease-in-out infinite; }
+    .float-delay { animation: float 3s ease-in-out 1s infinite; }
+
+    /* Pulse ring */
+    @keyframes pulseRing {
+      0% { transform: scale(1); opacity: 0.4; }
+      100% { transform: scale(1.8); opacity: 0; }
+    }
+    .pulse-ring::after {
+      content: '';
+      position: absolute;
+      inset: -4px;
+      border-radius: 50%;
+      border: 2px solid var(--accent);
+      animation: pulseRing 2s ease-out infinite;
+    }
+
+    /* Section reveal */
+    .reveal {
+      opacity: 0;
+      transform: translateY(40px);
+      transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Tab active */
+    .tab-btn.active {
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+
+    /* Code copy button */
+    .copy-btn {
+      transition: all 0.2s;
+    }
+    .copy-btn:hover {
+      background: rgba(255,255,255,0.15);
+    }
+
+    /* Feature card hover */
+    .feature-card {
+      transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .feature-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 20px 40px -12px rgba(15,15,14,0.1);
+    }
+
+    /* Scrollbar for code */
+    .code-scroll::-webkit-scrollbar { height: 6px; }
+    .code-scroll::-webkit-scrollbar-track { background: transparent; }
+    .code-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 3px; }
+
+    /* Hero mesh gradient */
+    .hero-mesh {
+      background:
+        radial-gradient(ellipse at 20% 50%, rgba(217, 119, 87, 0.08) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 20%, rgba(106, 155, 204, 0.06) 0%, transparent 50%),
+        radial-gradient(ellipse at 60% 80%, rgba(120, 140, 93, 0.05) 0%, transparent 50%);
+    }
+
+    /* API method hover */
+    .api-method {
+      transition: all 0.2s;
+    }
+    .api-method:hover {
+      background: rgba(217, 119, 87, 0.04);
+    }
+
+    /* Step connector line */
+    .step-connector {
+      position: absolute;
+      left: 15px;
+      top: 40px;
+      bottom: -24px;
+      width: 2px;
+      background: linear-gradient(to bottom, var(--accent), rgba(217, 119, 87, 0.1));
+    }
+
+    /* Driver.js popover customization */
+    .tour-popover {
+      font-family: 'Noto Sans SC', sans-serif !important;
+      border-radius: 16px !important;
+      padding: 20px 24px !important;
+      max-width: 380px !important;
+      box-shadow: 0 20px 60px -12px rgba(15, 15, 14, 0.15) !important;
+    }
+    .tour-popover .driver-popover-title {
+      font-family: 'Space Grotesk', 'Noto Sans SC', sans-serif !important;
+      font-size: 18px !important;
+      font-weight: 700 !important;
+      color: #0f0f0e !important;
+      letter-spacing: -0.02em !important;
+    }
+    .tour-popover .driver-popover-description {
+      font-size: 14px !important;
+      line-height: 1.65 !important;
+      color: rgba(15, 15, 14, 0.55) !important;
+      margin-top: 8px !important;
+    }
+    .tour-popover .driver-popover-progress-text {
+      font-family: 'JetBrains Mono', monospace !important;
+      font-size: 12px !important;
+      color: #b0aea5 !important;
+    }
+    .tour-popover .driver-popover-next-btn {
+      background: #d97757 !important;
+      color: white !important;
+      border-radius: 10px !important;
+      font-weight: 600 !important;
+      padding: 8px 18px !important;
+      border: none !important;
+    }
+    .tour-popover .driver-popover-next-btn:hover {
+      background: #c4664a !important;
+    }
+    .tour-popover .driver-popover-prev-btn {
+      background: #e8e6dc !important;
+      color: #0f0f0e !important;
+      border-radius: 10px !important;
+      font-weight: 600 !important;
+      padding: 8px 18px !important;
+      border: none !important;
+    }
+    .tour-popover .driver-popover-close-btn {
+      color: #b0aea5 !important;
+      font-size: 20px !important;
+    }
+    .tour-popover .driver-popover-close-btn:hover {
+      color: #0f0f0e !important;
+    }
+    .tour-popover .driver-popover-arrow-side-left,
+    .tour-popover .driver-popover-arrow-side-right,
+    .tour-popover .driver-popover-arrow-side-top,
+    .tour-popover .driver-popover-arrow-side-bottom {
+      border-color: white !important;
+    }
+  </style>
+</head>
+<body class="grain min-h-[100dvh]">
+
+  <!-- Navigation -->
+  <nav id="navbar" class="fixed top-0 left-0 right-0 z-50 transition-all duration-300" style="background: transparent; border-bottom: 1px solid transparent;">
+    <div class="max-w-7xl mx-auto px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        <!-- Logo -->
+        <a href="#" class="flex items-center gap-3 group">
+          <div class="w-9 h-9 rounded-xl bg-accent/10 flex items-center justify-center group-hover:bg-accent/20 transition-colors">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-accent">
+              <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+              <path d="M2 17l10 5 10-5"/>
+              <path d="M2 12l10 5 10-5"/>
+            </svg>
+          </div>
+          <span class="font-display font-bold text-lg tracking-tight">Driver.js</span>
+          <span class="hidden sm:inline text-xs font-mono text-mid bg-subtle/60 px-2 py-0.5 rounded-full">v1.x</span>
+        </a>
+
+        <!-- Nav links -->
+        <div id="nav-links" class="hidden md:flex items-center gap-1">
+          <a href="#features" class="px-4 py-2 text-sm font-medium text-ink/60 hover:text-ink transition-colors rounded-lg hover:bg-ink/5">特性</a>
+          <a href="#install" class="px-4 py-2 text-sm font-medium text-ink/60 hover:text-ink transition-colors rounded-lg hover:bg-ink/5">安装</a>
+          <a href="#quickstart" class="px-4 py-2 text-sm font-medium text-ink/60 hover:text-ink transition-colors rounded-lg hover:bg-ink/5">快速开始</a>
+          <a href="#api" class="px-4 py-2 text-sm font-medium text-ink/60 hover:text-ink transition-colors rounded-lg hover:bg-ink/5">API</a>
+          <a href="#config" class="px-4 py-2 text-sm font-medium text-ink/60 hover:text-ink transition-colors rounded-lg hover:bg-ink/5">配置</a>
+        </div>
+
+        <!-- CTA -->
+        <div class="flex items-center gap-3">
+          <a href="https://github.com/nilbuild/driver.js" target="_blank" class="hidden sm:flex items-center gap-2 px-4 py-2 text-sm font-medium text-ink/60 hover:text-ink transition-colors">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0112 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/></svg>
+            GitHub
+          </a>
+          <a href="#quickstart" class="px-5 py-2 bg-accent text-white text-sm font-semibold rounded-xl hover:bg-accentDark transition-all active:scale-[0.97] shadow-sm shadow-accent/20">
+            开始使用
+          </a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="hero-mesh relative overflow-hidden pt-32 pb-24 lg:pt-44 lg:pb-36">
+    <!-- Decorative elements -->
+    <div class="absolute top-24 right-[10%] w-64 h-64 rounded-full bg-accent/5 blur-3xl float"></div>
+    <div class="absolute bottom-0 left-[5%] w-48 h-48 rounded-full bg-blue-400/5 blur-3xl float-delay"></div>
+
+    <div class="max-w-7xl mx-auto px-6 lg:px-8 relative">
+      <div class="max-w-4xl">
+        <!-- Badge -->
+        <div class="fade-in-up inline-flex items-center gap-2 px-4 py-1.5 bg-accent/8 border border-accent/15 rounded-full mb-8">
+          <span class="relative w-2 h-2 rounded-full bg-accent pulse-ring"></span>
+          <span class="text-sm font-medium text-accent">开源 &middot; MIT 许可 &middot; 仅 5kb</span>
+        </div>
+
+        <!-- Heading -->
+        <h1 id="hero-heading" class="fade-in-up delay-1 font-display text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tighter leading-[1.05]">
+          为你的应用打造<br/>
+          <span class="text-accent">沉浸式</span>产品引导
+        </h1>
+
+        <p class="fade-in-up delay-2 mt-6 text-lg lg:text-xl text-ink/55 max-w-[60ch] leading-relaxed">
+          Driver.js 是一个功能强大、高度可定制的 JavaScript 库，用于创建产品引导、功能介绍和元素高亮。无外部依赖，轻量且支持所有主流浏览器。
+        </p>
+
+        <!-- CTA buttons -->
+        <div class="fade-in-up delay-3 mt-10 flex flex-wrap gap-4">
+          <a href="#quickstart" class="group px-7 py-3.5 bg-ink text-paper font-semibold rounded-2xl hover:bg-ink/90 transition-all active:scale-[0.97] flex items-center gap-2">
+            快速开始
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="group-hover:translate-x-0.5 transition-transform"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </a>
+          <button id="btn-tour" onclick="startTour()" class="px-7 py-3.5 bg-accent text-white font-semibold rounded-2xl hover:bg-accentDark transition-all active:scale-[0.97] flex items-center gap-2 shadow-sm shadow-accent/20">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class=""><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            体验引导
+          </button>
+          <a href="https://driverjs.com" target="_blank" class="px-7 py-3.5 border-2 border-ink/12 font-semibold rounded-2xl hover:border-ink/25 hover:bg-ink/3 transition-all active:scale-[0.97]">
+            在线演示
+          </a>
+        </div>
+
+        <!-- Stats -->
+        <div class="fade-in-up delay-4 mt-16 flex flex-wrap gap-x-12 gap-y-6">
+          <div>
+            <div class="font-display text-3xl font-bold tracking-tight">5kb</div>
+            <div class="text-sm text-mid mt-1">Gzip 压缩体积</div>
+          </div>
+          <div>
+            <div class="font-display text-3xl font-bold tracking-tight">0</div>
+            <div class="text-sm text-mid mt-1">外部依赖</div>
+          </div>
+          <div>
+            <div class="font-display text-3xl font-bold tracking-tight">100%</div>
+            <div class="text-sm text-mid mt-1">TypeScript 编写</div>
+          </div>
+          <div>
+            <div class="font-display text-3xl font-bold tracking-tight">MIT</div>
+            <div class="text-sm text-mid mt-1">开源许可</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hero code preview -->
+      <div id="hero-code" class="fade-in-up delay-5 mt-16 lg:mt-0 lg:absolute lg:top-24 lg:right-6 lg:w-[440px]">
+        <div class="rounded-2xl overflow-hidden shadow-2xl shadow-ink/10 border border-white/10">
+          <!-- Code window header -->
+          <div class="bg-code px-4 py-3 flex items-center gap-2">
+            <div class="flex gap-1.5">
+              <div class="w-3 h-3 rounded-full bg-[#ff5f57]"></div>
+              <div class="w-3 h-3 rounded-full bg-[#febc2e]"></div>
+              <div class="w-3 h-3 rounded-full bg-[#28c840]"></div>
+            </div>
+            <span class="ml-3 text-xs text-white/30 font-mono">tour.js</span>
+          </div>
+          <!-- Code content -->
+          <div class="bg-code p-5 text-sm font-mono leading-relaxed code-scroll overflow-x-auto">
+            <div><span class="token-import">import</span> <span class="token-punctuation">{</span> <span class="token-variable">driver</span> <span class="token-punctuation">}</span> <span class="token-import">from</span> <span class="token-string">"driver.js"</span><span class="token-punctuation">;</span></div>
+            <div><span class="token-import">import</span> <span class="token-string">"driver.js/dist/driver.css"</span><span class="token-punctuation">;</span></div>
+            <div class="mt-3"><span class="token-keyword">const</span> <span class="token-variable">driverObj</span> <span class="token-operator">=</span> <span class="token-function">driver</span><span class="token-punctuation">({</span></div>
+            <div class="pl-4"><span class="token-property">showProgress</span><span class="token-punctuation">:</span> <span class="token-keyword">true</span><span class="token-punctuation">,</span></div>
+            <div class="pl-4"><span class="token-property">steps</span><span class="token-punctuation">:</span> <span class="token-punctuation">[</span></div>
+            <div class="pl-8"><span class="token-punctuation">{</span></div>
+            <div class="pl-12"><span class="token-property">element</span><span class="token-punctuation">:</span> <span class="token-string">"#search"</span><span class="token-punctuation">,</span></div>
+            <div class="pl-12"><span class="token-property">popover</span><span class="token-punctuation">:</span> <span class="token-punctuation">{</span></div>
+            <div class="pl-16"><span class="token-property">title</span><span class="token-punctuation">:</span> <span class="token-string">"搜索功能"</span><span class="token-punctuation">,</span></div>
+            <div class="pl-16"><span class="token-property">description</span><span class="token-punctuation">:</span> <span class="token-string">"快速查找任何内容"</span></div>
+            <div class="pl-12"><span class="token-punctuation">}</span></div>
+            <div class="pl-8"><span class="token-punctuation">},</span></div>
+            <div class="pl-8"><span class="token-comment">// ... 更多步骤</span></div>
+            <div class="pl-4"><span class="token-punctuation">]</span></div>
+            <div><span class="token-punctuation">});</span></div>
+            <div class="mt-3"><span class="token-variable">driverObj</span><span class="token-punctuation">.</span><span class="token-function">drive</span><span class="token-punctuation">();</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Divider -->
+  <div class="max-w-7xl mx-auto px-6 lg:px-8">
+    <div class="h-px bg-gradient-to-r from-transparent via-mid/20 to-transparent"></div>
+  </div>
+
+  <!-- Features Section -->
+  <section id="features" class="py-24 lg:py-32">
+    <div class="max-w-7xl mx-auto px-6 lg:px-8">
+      <div class="reveal max-w-2xl mb-16">
+        <span class="font-mono text-xs text-accent tracking-widest uppercase">核心特性</span>
+        <h2 class="mt-3 font-display text-4xl lg:text-5xl font-bold tracking-tighter">不只是引导库</h2>
+        <p class="mt-4 text-ink/50 text-lg leading-relaxed">
+          Driver.js 可用于任何需要为页面添加覆盖层的场景——高亮组件、上下文帮助、焦点切换、模态框，以及更多。
+        </p>
+      </div>
+
+      <div id="features-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 reveal">
+        <!-- Feature 1 -->
+        <div class="feature-card p-7 rounded-2xl border border-subtle bg-white/60">
+          <div class="w-11 h-11 rounded-xl bg-accent/10 flex items-center justify-center mb-5">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-accent"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+          </div>
+          <h3 class="font-display text-lg font-bold tracking-tight">极简上手</h3>
+          <p class="mt-2 text-ink/50 text-sm leading-relaxed">零外部依赖，几行代码即可创建产品引导。引入、配置、执行——就是这么简单。</p>
+        </div>
+
+        <!-- Feature 2 -->
+        <div class="feature-card p-7 rounded-2xl border border-subtle bg-white/60">
+          <div class="w-11 h-11 rounded-xl bg-blue-50 flex items-center justify-center mb-5">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-blue-500"><path d="M12 20V10M18 20V4M6 20v-4"/></svg>
+          </div>
+          <h3 class="font-display text-lg font-bold tracking-tight">超轻量</h3>
+          <p class="mt-2 text-ink/50 text-sm leading-relaxed">Gzip 压缩后仅 ~5kb，比同类库（12kb+）小了一半以上，不给项目增加负担。</p>
+        </div>
+
+        <!-- Feature 3 -->
+        <div class="feature-card p-7 rounded-2xl border border-subtle bg-white/60">
+          <div class="w-11 h-11 rounded-xl bg-emerald-50 flex items-center justify-center mb-5">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-emerald-500"><path d="M12 3v18M3 12h18M5.6 5.6l12.8 12.8M18.4 5.6 5.6 18.4"/></svg>
+          </div>
+          <h3 class="font-display text-lg font-bold tracking-tight">高度可定制</h3>
+          <p class="mt-2 text-ink/50 text-sm leading-relaxed">强大的 API 和丰富的配置选项，从动画速度到弹出框位置，一切尽在掌控。</p>
+        </div>
+
+        <!-- Feature 4 -->
+        <div class="feature-card p-7 rounded-2xl border border-subtle bg-white/60">
+          <div class="w-11 h-11 rounded-xl bg-amber-50 flex items-center justify-center mb-5">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-amber-500"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+          </div>
+          <h3 class="font-display text-lg font-bold tracking-tight">高亮任意元素</h3>
+          <p class="mt-2 text-ink/50 text-sm leading-relaxed">可以高亮页面上的任何 DOM 元素，支持单个元素聚焦或多步骤序列引导。</p>
+        </div>
+
+        <!-- Feature 5 -->
+        <div class="feature-card p-7 rounded-2xl border border-subtle bg-white/60">
+          <div class="w-11 h-11 rounded-xl bg-purple-50 flex items-center justify-center mb-5">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-purple-500"><path d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5"/></svg>
+          </div>
+          <h3 class="font-display text-lg font-bold tracking-tight">钩子与回调</h3>
+          <p class="mt-2 text-ink/50 text-sm leading-relaxed">为每一步提供生命周期钩子，可在高亮前、高亮后、取消选中时执行自定义逻辑。</p>
+        </div>
+
+        <!-- Feature 6 -->
+        <div class="feature-card p-7 rounded-2xl border border-subtle bg-white/60">
+          <div class="w-11 h-11 rounded-xl bg-rose-50 flex items-center justify-center mb-5">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-rose-500"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+          </div>
+          <h3 class="font-display text-lg font-bold tracking-tight">跨浏览器兼容</h3>
+          <p class="mt-2 text-ink/50 text-sm leading-relaxed">在所有主流浏览器中行为一致，键盘友好，满足无障碍访问需求。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Use Cases -->
+  <section class="pb-24 lg:pb-32">
+    <div class="max-w-7xl mx-auto px-6 lg:px-8">
+      <div class="reveal rounded-3xl bg-ink text-paper p-10 lg:p-16 relative overflow-hidden">
+        <!-- Decorative -->
+        <div class="absolute -top-20 -right-20 w-72 h-72 rounded-full bg-accent/10 blur-3xl"></div>
+        <div class="absolute -bottom-20 -left-20 w-56 h-56 rounded-full bg-blue-500/8 blur-3xl"></div>
+
+        <div class="relative z-10">
+          <span class="font-mono text-xs text-accent/80 tracking-widest uppercase">应用场景</span>
+          <h2 class="mt-3 font-display text-3xl lg:text-4xl font-bold tracking-tighter">远不止产品引导</h2>
+          <p class="mt-4 text-white/45 max-w-[60ch] leading-relaxed">
+            Driver.js 可以应用于任何需要页面覆盖层的场景，以下是一些常见用例。
+          </p>
+
+          <div class="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div class="group">
+              <div class="flex items-center gap-3 mb-3">
+                <div class="w-8 h-8 rounded-lg bg-accent/20 flex items-center justify-center text-accent text-sm font-bold font-display">01</div>
+                <h4 class="font-display font-semibold">产品引导</h4>
+              </div>
+              <p class="text-white/40 text-sm leading-relaxed pl-11">为新用户创建交互式的产品功能介绍之旅。</p>
+            </div>
+            <div class="group">
+              <div class="flex items-center gap-3 mb-3">
+                <div class="w-8 h-8 rounded-lg bg-accent/20 flex items-center justify-center text-accent text-sm font-bold font-display">02</div>
+                <h4 class="font-display font-semibold">上下文帮助</h4>
+              </div>
+              <p class="text-white/40 text-sm leading-relaxed pl-11">在用户填写表单时提供带暗色背景的弹出提示。</p>
+            </div>
+            <div class="group">
+              <div class="flex items-center gap-3 mb-3">
+                <div class="w-8 h-8 rounded-lg bg-accent/20 flex items-center justify-center text-accent text-sm font-bold font-display">03</div>
+                <h4 class="font-display font-semibold">焦点切换</h4>
+              </div>
+              <p class="text-white/40 text-sm leading-relaxed pl-11">将用户注意力引导至页面上的特定组件或新功能。</p>
+            </div>
+            <div class="group">
+              <div class="flex items-center gap-3 mb-3">
+                <div class="w-8 h-8 rounded-lg bg-accent/20 flex items-center justify-center text-accent text-sm font-bold font-display">04</div>
+                <h4 class="font-display font-semibold">模态覆盖</h4>
+              </div>
+              <p class="text-white/40 text-sm leading-relaxed pl-11">用作轻量级模态框或模拟"关灯"效果。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Installation Section -->
+  <section id="install" class="py-24 lg:py-32 bg-subtle/30">
+    <div class="max-w-7xl mx-auto px-6 lg:px-8">
+      <div class="reveal max-w-2xl mb-12">
+        <span class="font-mono text-xs text-accent tracking-widest uppercase">安装</span>
+        <h2 class="mt-3 font-display text-4xl lg:text-5xl font-bold tracking-tighter">一分钟上手</h2>
+        <p class="mt-4 text-ink/50 text-lg leading-relaxed">选择你喜欢的包管理器或通过 CDN 直接引入。</p>
+      </div>
+
+      <div class="reveal grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- Package Manager -->
+        <div>
+          <h3 class="font-display font-semibold text-lg mb-5 flex items-center gap-2">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-accent"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>
+            包管理器
+          </h3>
+
+          <!-- Tabs -->
+          <div class="flex gap-1 mb-4 border-b border-subtle pb-0">
+            <button class="tab-btn active px-4 py-2.5 text-sm font-medium border-b-2 border-transparent transition-colors" data-tab="npm">npm</button>
+            <button class="tab-btn px-4 py-2.5 text-sm font-medium border-b-2 border-transparent transition-colors text-mid" data-tab="pnpm">pnpm</button>
+            <button class="tab-btn px-4 py-2.5 text-sm font-medium border-b-2 border-transparent transition-colors text-mid" data-tab="yarn">yarn</button>
+          </div>
+
+          <!-- Tab content -->
+          <div id="tab-npm" class="tab-content">
+            <div class="rounded-xl bg-code p-5 font-mono text-sm relative group">
+              <button class="copy-btn absolute top-3 right-3 px-3 py-1.5 rounded-lg bg-white/5 text-white/40 text-xs opacity-0 group-hover:opacity-100 transition-opacity" onclick="copyCode(this)">复制</button>
+              <span class="text-white/40 select-none">$</span> <span class="text-white/90">npm install driver.js</span>
+            </div>
+          </div>
+          <div id="tab-pnpm" class="tab-content hidden">
+            <div class="rounded-xl bg-code p-5 font-mono text-sm relative group">
+              <button class="copy-btn absolute top-3 right-3 px-3 py-1.5 rounded-lg bg-white/5 text-white/40 text-xs opacity-0 group-hover:opacity-100 transition-opacity" onclick="copyCode(this)">复制</button>
+              <span class="text-white/40 select-none">$</span> <span class="text-white/90">pnpm install driver.js</span>
+            </div>
+          </div>
+          <div id="tab-yarn" class="tab-content hidden">
+            <div class="rounded-xl bg-code p-5 font-mono text-sm relative group">
+              <button class="copy-btn absolute top-3 right-3 px-3 py-1.5 rounded-lg bg-white/5 text-white/40 text-xs opacity-0 group-hover:opacity-100 transition-opacity" onclick="copyCode(this)">复制</button>
+              <span class="text-white/40 select-none">$</span> <span class="text-white/90">yarn add driver.js</span>
+            </div>
+          </div>
+
+          <div class="mt-5 p-4 rounded-xl bg-accent/5 border border-accent/10">
+            <p class="text-sm text-ink/60 leading-relaxed">安装完成后，在项目中引入模块和样式：</p>
+            <div class="mt-3 rounded-lg bg-code p-4 font-mono text-xs relative">
+              <div><span class="token-import">import</span> <span class="token-punctuation">{</span> <span class="token-variable">driver</span> <span class="token-punctuation">}</span> <span class="token-import">from</span> <span class="token-string">"driver.js"</span><span class="token-punctuation">;</span></div>
+              <div><span class="token-import">import</span> <span class="token-string">"driver.js/dist/driver.css"</span><span class="token-punctuation">;</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CDN -->
+        <div>
+          <h3 class="font-display font-semibold text-lg mb-5 flex items-center gap-2">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-accent"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>
+            CDN 引入
+          </h3>
+
+          <p class="text-sm text-ink/50 mb-4">无需安装，直接在 HTML 中添加以下标签：</p>
+
+          <div class="rounded-xl bg-code p-5 font-mono text-xs leading-relaxed code-scroll overflow-x-auto relative group">
+            <button class="copy-btn absolute top-3 right-3 px-3 py-1.5 rounded-lg bg-white/5 text-white/40 text-xs opacity-0 group-hover:opacity-100 transition-opacity" onclick="copyCode(this)">复制</button>
+            <div><span class="token-comment">&lt;!-- 样式表 --&gt;</span></div>
+            <div><span class="token-tag">&lt;link</span> <span class="token-property">rel</span><span class="token-operator">=</span><span class="token-string">"stylesheet"</span></div>
+            <div class="pl-8"><span class="token-property">href</span><span class="token-operator">=</span><span class="token-string">"https://cdn.jsdelivr.net/npm/driver.js@latest/dist/driver.css"</span><span class="token-tag">/&gt;</span></div>
+            <div class="mt-3"><span class="token-comment">&lt;!-- JavaScript --&gt;</span></div>
+            <div><span class="token-tag">&lt;script</span> <span class="token-property">src</span><span class="token-operator">=</span><span class="token-string">"https://cdn.jsdelivr.net/npm/driver.js@latest/dist/driver.js.iife.js"</span><span class="token-tag">&gt;&lt;/script&gt;</span></div>
+          </div>
+
+          <div class="mt-5 p-4 rounded-xl bg-blue-50/60 border border-blue-100">
+            <p class="text-sm text-ink/60 leading-relaxed">使用 CDN 时，通过全局对象访问：</p>
+            <div class="mt-3 rounded-lg bg-code p-4 font-mono text-xs relative">
+              <div><span class="token-keyword">const</span> <span class="token-variable">driver</span> <span class="token-operator">=</span> <span class="token-variable">window</span><span class="token-punctuation">.</span><span class="token-variable">driver</span><span class="token-punctuation">.</span><span class="token-variable">js</span><span class="token-punctuation">.</span><span class="token-variable">driver</span><span class="token-punctuation">;</span></div>
+              <div><span class="token-keyword">const</span> <span class="token-variable">driverObj</span> <span class="token-operator">=</span> <span class="token-function">driver</span><span class="token-punctuation">();</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Quick Start Section -->
+  <section id="quickstart" class="py-24 lg:py-32">
+    <div class="max-w-7xl mx-auto px-6 lg:px-8">
+      <div class="reveal max-w-2xl mb-16">
+        <span class="font-mono text-xs text-accent tracking-widest uppercase">快速开始</span>
+        <h2 class="mt-3 font-display text-4xl lg:text-5xl font-bold tracking-tighter">三步创建产品引导</h2>
+        <p class="mt-4 text-ink/50 text-lg leading-relaxed">引入库、定义步骤、启动引导——整个流程就这么简单。</p>
+      </div>
+
+      <!-- Steps -->
+      <div class="reveal grid grid-cols-1 lg:grid-cols-5 gap-12">
+        <div class="lg:col-span-2 space-y-10">
+          <div class="relative pl-12">
+            <div class="step-connector"></div>
+            <div class="absolute left-0 top-0 w-8 h-8 rounded-full bg-accent text-white flex items-center justify-center font-display font-bold text-sm">1</div>
+            <h4 class="font-display font-semibold text-lg">引入 Driver.js</h4>
+            <p class="mt-2 text-sm text-ink/50 leading-relaxed">通过包管理器或 CDN 引入库文件和样式表。</p>
+          </div>
+          <div class="relative pl-12">
+            <div class="step-connector"></div>
+            <div class="absolute left-0 top-0 w-8 h-8 rounded-full bg-accent text-white flex items-center justify-center font-display font-bold text-sm">2</div>
+            <h4 class="font-display font-semibold text-lg">定义引导步骤</h4>
+            <p class="mt-2 text-sm text-ink/50 leading-relaxed">创建步骤数组，每一步指定目标元素和弹出框内容。</p>
+          </div>
+          <div class="relative pl-12">
+            <div class="absolute left-0 top-0 w-8 h-8 rounded-full bg-accent text-white flex items-center justify-center font-display font-bold text-sm">3</div>
+            <h4 class="font-display font-semibold text-lg">启动引导</h4>
+            <p class="mt-2 text-sm text-ink/50 leading-relaxed">调用 <code class="font-mono text-accent bg-accent/8 px-1.5 py-0.5 rounded">drive()</code> 方法开始产品引导之旅。</p>
+          </div>
+        </div>
+
+        <!-- Code example -->
+        <div id="quickstart-code" class="lg:col-span-3">
+          <div class="rounded-2xl overflow-hidden shadow-xl shadow-ink/5 border border-subtle">
+            <div class="bg-code px-5 py-3 flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <div class="flex gap-1.5">
+                  <div class="w-3 h-3 rounded-full bg-[#ff5f57]"></div>
+                  <div class="w-3 h-3 rounded-full bg-[#febc2e]"></div>
+                  <div class="w-3 h-3 rounded-full bg-[#28c840]"></div>
+                </div>
+                <span class="text-xs text-white/30 font-mono">quickstart.js</span>
+              </div>
+              <button class="copy-btn px-3 py-1.5 rounded-lg bg-white/5 text-white/40 text-xs opacity-0 hover:opacity-100 transition-opacity" onclick="copyCode(this)">复制</button>
+            </div>
+            <div class="bg-code p-6 font-mono text-sm leading-[1.8] code-scroll overflow-x-auto">
+              <div><span class="token-import">import</span> <span class="token-punctuation">{</span> <span class="token-variable">driver</span> <span class="token-punctuation">}</span> <span class="token-import">from</span> <span class="token-string">"driver.js"</span><span class="token-punctuation">;</span></div>
+              <div><span class="token-import">import</span> <span class="token-string">"driver.js/dist/driver.css"</span><span class="token-punctuation">;</span></div>
+              <div class="mt-4"><span class="token-keyword">const</span> <span class="token-variable">driverObj</span> <span class="token-operator">=</span> <span class="token-function">driver</span><span class="token-punctuation">({</span></div>
+              <div class="pl-4"><span class="token-property">showProgress</span><span class="token-punctuation">:</span> <span class="token-keyword">true</span><span class="token-punctuation">,</span></div>
+              <div class="pl-4"><span class="token-property">animate</span><span class="token-punctuation">:</span> <span class="token-keyword">true</span><span class="token-punctuation">,</span></div>
+              <div class="pl-4"><span class="token-property">steps</span><span class="token-punctuation">:</span> <span class="token-punctuation">[</span></div>
+              <div class="pl-8"><span class="token-punctuation">{</span></div>
+              <div class="pl-12"><span class="token-property">element</span><span class="token-punctuation">:</span> <span class="token-string">"#header"</span><span class="token-punctuation">,</span></div>
+              <div class="pl-12"><span class="token-property">popover</span><span class="token-punctuation">:</span> <span class="token-punctuation">{</span></div>
+              <div class="pl-16"><span class="token-property">title</span><span class="token-punctuation">:</span> <span class="token-string">"导航栏"</span><span class="token-punctuation">,</span></div>
+              <div class="pl-16"><span class="token-property">description</span><span class="token-punctuation">:</span> <span class="token-string">"这是主导航区域"</span></div>
+              <div class="pl-12"><span class="token-punctuation">}</span></div>
+              <div class="pl-8"><span class="token-punctuation">},</span></div>
+              <div class="pl-8"><span class="token-punctuation">{</span></div>
+              <div class="pl-12"><span class="token-property">element</span><span class="token-punctuation">:</span> <span class="token-string">"#search"</span><span class="token-punctuation">,</span></div>
+              <div class="pl-12"><span class="token-property">popover</span><span class="token-punctuation">:</span> <span class="token-punctuation">{</span></div>
+              <div class="pl-16"><span class="token-property">title</span><span class="token-punctuation">:</span> <span class="token-string">"搜索"</span><span class="token-punctuation">,</span></div>
+              <div class="pl-16"><span class="token-property">description</span><span class="token-punctuation">:</span> <span class="token-string">"在这里快速查找内容"</span></div>
+              <div class="pl-12"><span class="token-punctuation">}</span></div>
+              <div class="pl-8"><span class="token-punctuation">},</span></div>
+              <div class="pl-8"><span class="token-punctuation">{</span></div>
+              <div class="pl-12"><span class="token-property">element</span><span class="token-punctuation">:</span> <span class="token-string">"#profile"</span><span class="token-punctuation">,</span></div>
+              <div class="pl-12"><span class="token-property">popover</span><span class="token-punctuation">:</span> <span class="token-punctuation">{</span></div>
+              <div class="pl-16"><span class="token-property">title</span><span class="token-punctuation">:</span> <span class="token-string">"个人中心"</span><span class="token-punctuation">,</span></div>
+              <div class="pl-16"><span class="token-property">description</span><span class="token-punctuation">:</span> <span class="token-string">"管理你的账户设置"</span></div>
+              <div class="pl-12"><span class="token-punctuation">}</span></div>
+              <div class="pl-8"><span class="token-punctuation">}</span></div>
+              <div class="pl-4"><span class="token-punctuation">]</span></div>
+              <div><span class="token-punctuation">});</span></div>
+              <div class="mt-4"><span class="token-variable">driverObj</span><span class="token-punctuation">.</span><span class="token-function">drive</span><span class="token-punctuation">();</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Single highlight -->
+      <div class="reveal mt-20">
+        <h3 class="font-display text-2xl font-bold tracking-tight mb-6">高亮单个元素</h3>
+        <p class="text-ink/50 mb-6 max-w-[60ch] leading-relaxed">不需要完整的产品引导？使用 <code class="font-mono text-accent bg-accent/8 px-1.5 py-0.5 rounded">highlight()</code> 方法聚焦单个 DOM 元素。</p>
+        <div class="rounded-2xl overflow-hidden shadow-xl shadow-ink/5 border border-subtle max-w-2xl">
+          <div class="bg-code px-5 py-3 flex items-center gap-3">
+            <div class="flex gap-1.5">
+              <div class="w-3 h-3 rounded-full bg-[#ff5f57]"></div>
+              <div class="w-3 h-3 rounded-full bg-[#febc2e]"></div>
+              <div class="w-3 h-3 rounded-full bg-[#28c840]"></div>
+            </div>
+            <span class="text-xs text-white/30 font-mono">highlight.js</span>
+          </div>
+          <div class="bg-code p-6 font-mono text-sm leading-[1.8] code-scroll overflow-x-auto">
+            <div><span class="token-keyword">const</span> <span class="token-variable">driverObj</span> <span class="token-operator">=</span> <span class="token-function">driver</span><span class="token-punctuation">();</span></div>
+            <div class="mt-3"><span class="token-variable">driverObj</span><span class="token-punctuation">.</span><span class="token-function">highlight</span><span class="token-punctuation">({</span></div>
+            <div class="pl-4"><span class="token-property">element</span><span class="token-punctuation">:</span> <span class="token-string">"#new-feature"</span><span class="token-punctuation">,</span></div>
+            <div class="pl-4"><span class="token-property">popover</span><span class="token-punctuation">:</span> <span class="token-punctuation">{</span></div>
+            <div class="pl-8"><span class="token-property">title</span><span class="token-punctuation">:</span> <span class="token-string">"新功能：深色模式"</span><span class="token-punctuation">,</span></div>
+            <div class="pl-8"><span class="token-property">description</span><span class="token-punctuation">:</span> <span class="token-string">"在工具栏中一键切换主题"</span></div>
+            <div class="pl-4"><span class="token-punctuation">}</span></div>
+            <div><span class="token-punctuation">});</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- API Section -->
+  <section id="api" class="py-24 lg:py-32 bg-subtle/30">
+    <div class="max-w-7xl mx-auto px-6 lg:px-8">
+      <div class="reveal max-w-2xl mb-16">
+        <span class="font-mono text-xs text-accent tracking-widest uppercase">API 参考</span>
+        <h2 class="mt-3 font-display text-4xl lg:text-5xl font-bold tracking-tighter">完整 API 一览</h2>
+        <p class="mt-4 text-ink/50 text-lg leading-relaxed">实例化后返回的对象提供以下方法，用于控制引导流程和查询状态。</p>
+      </div>
+
+      <div class="reveal grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- Tour Control -->
+        <div class="rounded-2xl border border-subtle bg-white/60 overflow-hidden">
+          <div class="px-6 py-4 border-b border-subtle bg-subtle/20">
+            <h3 class="font-display font-bold tracking-tight flex items-center gap-2">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-accent"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              引导控制与导航
+            </h3>
+          </div>
+          <div class="divide-y divide-subtle/60">
+            <div class="api-method px-6 py-4">
+              <code class="font-mono text-sm font-medium text-accent">drive(index?)</code>
+              <p class="mt-1 text-sm text-ink/50">启动引导序列，默认从第一步开始，可传入索引指定起始位置。</p>
+            </div>
+            <div class="api-method px-6 py-4">
+              <code class="font-mono text-sm font-medium text-accent">highlight(options)</code>
+              <p class="mt-1 text-sm text-ink/50">高亮单个 DOM 元素，使用 DriveStep 格式配置弹出框。</p>
+            </div>
+            <div class="api-method px-6 py-4">
+              <code class="font-mono text-sm font-medium text-accent">moveNext()</code>
+              <p class="mt-1 text-sm text-ink/50">前进到下一步。</p>
+            </div>
+            <div class="api-method px-6 py-4">
+              <code class="font-mono text-sm font-medium text-accent">movePrevious()</code>
+              <p class="mt-1 text-sm text-ink/50">回退到上一步。</p>
+            </div>
+            <div class="api-method px-6 py-4">
+              <code class="font-mono text-sm font-medium text-accent">moveTo(index)</code>
+              <p class="mt-1 text-sm text-ink/50">跳转到指定步骤。</p>
+            </div>
+            <div class="api-method px-6 py-4">
+              <code class="font-mono text-sm font-medium text-accent">destroy()</code>
+              <p class="mt-1 text-sm text-ink/50">终止并清理当前引导会话。</p>
+            </div>
+            <div class="api-method px-6 py-4">
+              <code class="font-mono text-sm font-medium text-accent">refresh()</code>
+              <p class="mt-1 text-sm text-ink/50">重新计算并重绘高亮区域，适用于布局变化时。</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Status Queries -->
+        <div class="space-y-8">
+          <div class="rounded-2xl border border-subtle bg-white/60 overflow-hidden">
+            <div class="px-6 py-4 border-b border-subtle bg-subtle/20">
+              <h3 class="font-display font-bold tracking-tight flex items-center gap-2">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-accent"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+                状态查询
+              </h3>
+            </div>
+            <div class="divide-y divide-subtle/60">
+              <div class="api-method px-6 py-4">
+                <code class="font-mono text-sm font-medium text-accent">isActive()</code>
+                <p class="mt-1 text-sm text-ink/50">检查当前是否有引导或高亮正在运行。</p>
+              </div>
+              <div class="api-method px-6 py-4">
+                <code class="font-mono text-sm font-medium text-accent">hasNextStep()</code>
+                <p class="mt-1 text-sm text-ink/50">是否存在下一步。</p>
+              </div>
+              <div class="api-method px-6 py-4">
+                <code class="font-mono text-sm font-medium text-accent">hasPreviousStep()</code>
+                <p class="mt-1 text-sm text-ink/50">是否存在上一步。</p>
+              </div>
+              <div class="api-method px-6 py-4">
+                <code class="font-mono text-sm font-medium text-accent">getActiveIndex()</code>
+                <p class="mt-1 text-sm text-ink/50">获取当前步骤的索引。</p>
+              </div>
+              <div class="api-method px-6 py-4">
+                <code class="font-mono text-sm font-medium text-accent">getActiveElement()</code>
+                <p class="mt-1 text-sm text-ink/50">获取当前步骤关联的 DOM 节点。</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="rounded-2xl border border-subtle bg-white/60 overflow-hidden">
+            <div class="px-6 py-4 border-b border-subtle bg-subtle/20">
+              <h3 class="font-display font-bold tracking-tight flex items-center gap-2">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-accent"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+                动态修改
+              </h3>
+            </div>
+            <div class="divide-y divide-subtle/60">
+              <div class="api-method px-6 py-4">
+                <code class="font-mono text-sm font-medium text-accent">setConfig(options)</code>
+                <p class="mt-1 text-sm text-ink/50">动态更新全局配置。</p>
+              </div>
+              <div class="api-method px-6 py-4">
+                <code class="font-mono text-sm font-medium text-accent">setSteps(steps[])</code>
+                <p class="mt-1 text-sm text-ink/50">动态替换步骤数组。</p>
+              </div>
+              <div class="api-method px-6 py-4">
+                <code class="font-mono text-sm font-medium text-accent">getConfig() / getState()</code>
+                <p class="mt-1 text-sm text-ink/50">获取当前配置或内部状态对象。</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Configuration Section -->
+  <section id="config" class="py-24 lg:py-32">
+    <div class="max-w-7xl mx-auto px-6 lg:px-8">
+      <div class="reveal max-w-2xl mb-16">
+        <span class="font-mono text-xs text-accent tracking-widest uppercase">配置项</span>
+        <h2 class="mt-3 font-display text-4xl lg:text-5xl font-bold tracking-tighter">灵活的配置系统</h2>
+        <p class="mt-4 text-ink/50 text-lg leading-relaxed">通过配置对象精细控制引导体验的每一个细节。</p>
+      </div>
+
+      <div class="reveal grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- Global Config -->
+        <div class="rounded-2xl border border-subtle bg-white/60 overflow-hidden">
+          <div class="px-6 py-4 border-b border-subtle bg-subtle/20">
+            <h3 class="font-display font-bold tracking-tight">全局配置</h3>
+          </div>
+          <div class="divide-y divide-subtle/60">
+            <div class="px-6 py-4">
+              <div class="flex items-center justify-between">
+                <code class="font-mono text-sm font-medium">animate</code>
+                <span class="text-xs font-mono text-mid bg-subtle/50 px-2 py-0.5 rounded">boolean</span>
+              </div>
+              <p class="mt-1 text-sm text-ink/50">是否启用过渡动画效果。</p>
+            </div>
+            <div class="px-6 py-4">
+              <div class="flex items-center justify-between">
+                <code class="font-mono text-sm font-medium">showProgress</code>
+                <span class="text-xs font-mono text-mid bg-subtle/50 px-2 py-0.5 rounded">boolean</span>
+              </div>
+              <p class="mt-1 text-sm text-ink/50">是否显示步骤进度指示器（如 1/5）。</p>
+            </div>
+            <div class="px-6 py-4">
+              <div class="flex items-center justify-between">
+                <code class="font-mono text-sm font-medium">overlayOpacity</code>
+                <span class="text-xs font-mono text-mid bg-subtle/50 px-2 py-0.5 rounded">number</span>
+              </div>
+              <p class="mt-1 text-sm text-ink/50">覆盖层的透明度。</p>
+            </div>
+            <div class="px-6 py-4">
+              <div class="flex items-center justify-between">
+                <code class="font-mono text-sm font-medium">smoothScroll</code>
+                <span class="text-xs font-mono text-mid bg-subtle/50 px-2 py-0.5 rounded">boolean</span>
+              </div>
+              <p class="mt-1 text-sm text-ink/50">滚动到目标元素时是否使用平滑滚动。</p>
+            </div>
+            <div class="px-6 py-4">
+              <div class="flex items-center justify-between">
+                <code class="font-mono text-sm font-medium">allowClose</code>
+                <span class="text-xs font-mono text-mid bg-subtle/50 px-2 py-0.5 rounded">boolean</span>
+              </div>
+              <p class="mt-1 text-sm text-ink/50">是否允许点击覆盖层关闭引导。</p>
+            </div>
+            <div class="px-6 py-4">
+              <div class="flex items-center justify-between">
+                <code class="font-mono text-sm font-medium">allowKeyboardControl</code>
+                <span class="text-xs font-mono text-mid bg-subtle/50 px-2 py-0.5 rounded">boolean</span>
+              </div>
+              <p class="mt-1 text-sm text-ink/50">是否允许使用键盘方向键导航。</p>
+            </div>
+            <div class="px-6 py-4">
+              <div class="flex items-center justify-between">
+                <code class="font-mono text-sm font-medium">stagePadding</code>
+                <span class="text-xs font-mono text-mid bg-subtle/50 px-2 py-0.5 rounded">number</span>
+              </div>
+              <p class="mt-1 text-sm text-ink/50">高亮区域的内边距。</p>
+            </div>
+            <div class="px-6 py-4">
+              <div class="flex items-center justify-between">
+                <code class="font-mono text-sm font-medium">stageRadius</code>
+                <span class="text-xs font-mono text-mid bg-subtle/50 px-2 py-0.5 rounded">number</span>
+              </div>
+              <p class="mt-1 text-sm text-ink/50">高亮区域的圆角半径。</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Popover Config + Example -->
+        <div class="space-y-8">
+          <div class="rounded-2xl border border-subtle bg-white/60 overflow-hidden">
+            <div class="px-6 py-4 border-b border-subtle bg-subtle/20">
+              <h3 class="font-display font-bold tracking-tight">弹出框定位</h3>
+            </div>
+            <div class="p-6 space-y-5">
+              <div>
+                <code class="font-mono text-sm font-medium text-accent">side</code>
+                <p class="mt-1 text-sm text-ink/50">弹出框位置：<code class="font-mono text-xs bg-subtle/50 px-1.5 py-0.5 rounded">top</code> <code class="font-mono text-xs bg-subtle/50 px-1.5 py-0.5 rounded">right</code> <code class="font-mono text-xs bg-subtle/50 px-1.5 py-0.5 rounded">bottom</code> <code class="font-mono text-xs bg-subtle/50 px-1.5 py-0.5 rounded">left</code>。空间不足时自动翻转。</p>
+              </div>
+              <div>
+                <code class="font-mono text-sm font-medium text-accent">align</code>
+                <p class="mt-1 text-sm text-ink/50">对齐方式：<code class="font-mono text-xs bg-subtle/50 px-1.5 py-0.5 rounded">start</code> <code class="font-mono text-xs bg-subtle/50 px-1.5 py-0.5 rounded">center</code> <code class="font-mono text-xs bg-subtle/50 px-1.5 py-0.5 rounded">end</code>。</p>
+              </div>
+              <div>
+                <code class="font-mono text-sm font-medium text-accent">popoverClass</code>
+                <p class="mt-1 text-sm text-ink/50">为弹出框添加自定义 CSS 类名。</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Hooks -->
+          <div class="rounded-2xl border border-subtle bg-white/60 overflow-hidden">
+            <div class="px-6 py-4 border-b border-subtle bg-subtle/20">
+              <h3 class="font-display font-bold tracking-tight">生命周期钩子</h3>
+            </div>
+            <div class="p-6">
+              <div class="rounded-lg bg-code p-5 font-mono text-xs leading-[1.8] code-scroll overflow-x-auto">
+                <div><span class="token-keyword">const</span> <span class="token-variable">driverObj</span> <span class="token-operator">=</span> <span class="token-function">driver</span><span class="token-punctuation">({</span></div>
+                <div class="pl-4"><span class="token-comment">// 步骤高亮后触发</span></div>
+                <div class="pl-4"><span class="token-property">onHighlighted</span><span class="token-punctuation">:</span> <span class="token-punctuation">(</span><span class="token-variable">el</span><span class="token-punctuation">,</span> <span class="token-variable">step</span><span class="token-punctuation">)</span> <span class="token-operator">=&gt;</span> <span class="token-punctuation">{</span></div>
+                <div class="pl-8"><span class="token-variable">console</span><span class="token-punctuation">.</span><span class="token-function">log</span><span class="token-punctuation">(</span><span class="token-string">"已高亮:"</span><span class="token-punctuation">,</span> <span class="token-variable">el</span><span class="token-punctuation">);</span></div>
+                <div class="pl-4"><span class="token-punctuation">},</span></div>
+                <div class="pl-4"><span class="token-comment">// 元素即将被高亮</span></div>
+                <div class="pl-4"><span class="token-property">onHighlightStarted</span><span class="token-punctuation">:</span> <span class="token-punctuation">(</span><span class="token-variable">el</span><span class="token-punctuation">,</span> <span class="token-variable">step</span><span class="token-punctuation">)</span> <span class="token-operator">=&gt;</span> <span class="token-punctuation">{</span> <span class="token-punctuation">},</span></div>
+                <div class="pl-4"><span class="token-comment">// 元素取消选中</span></div>
+                <div class="pl-4"><span class="token-property">onDeselected</span><span class="token-punctuation">:</span> <span class="token-punctuation">(</span><span class="token-variable">el</span><span class="token-punctuation">,</span> <span class="token-variable">step</span><span class="token-punctuation">)</span> <span class="token-operator">=&gt;</span> <span class="token-punctuation">{</span> <span class="token-punctuation">},</span></div>
+                <div class="pl-4"><span class="token-comment">// 引导完成时触发</span></div>
+                <div class="pl-4"><span class="token-property">onDestroyStarted</span><span class="token-punctuation">:</span> <span class="token-punctuation">()</span> <span class="token-operator">=&gt;</span> <span class="token-punctuation">{</span> <span class="token-punctuation">},</span></div>
+                <div><span class="token-punctuation">});</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Size Comparison -->
+  <section class="pb-24 lg:pb-32">
+    <div class="max-w-7xl mx-auto px-6 lg:px-8">
+      <div class="reveal rounded-3xl bg-white border border-subtle p-10 lg:p-16">
+        <div class="max-w-2xl mb-12">
+          <span class="font-mono text-xs text-accent tracking-widest uppercase">体积对比</span>
+          <h2 class="mt-3 font-display text-3xl font-bold tracking-tighter">最轻量的选择</h2>
+          <p class="mt-3 text-ink/50 leading-relaxed">与同类库相比，Driver.js 的体积优势明显。</p>
+        </div>
+
+        <div class="space-y-5">
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <span class="font-display font-semibold text-sm">Driver.js</span>
+              <span class="font-mono text-sm font-bold text-accent">~5kb</span>
+            </div>
+            <div class="h-3 rounded-full bg-subtle/60 overflow-hidden">
+              <div class="h-full rounded-full bg-accent transition-all duration-1000" style="width: 28%"></div>
+            </div>
+          </div>
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <span class="font-display font-semibold text-sm">Intro.js</span>
+              <span class="font-mono text-sm text-ink/40">~12kb</span>
+            </div>
+            <div class="h-3 rounded-full bg-subtle/60 overflow-hidden">
+              <div class="h-full rounded-full bg-ink/15 transition-all duration-1000" style="width: 67%"></div>
+            </div>
+          </div>
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <span class="font-display font-semibold text-sm">Shepherd.js</span>
+              <span class="font-mono text-sm text-ink/40">~15kb</span>
+            </div>
+            <div class="h-3 rounded-full bg-subtle/60 overflow-hidden">
+              <div class="h-full rounded-full bg-ink/15 transition-all duration-1000" style="width: 83%"></div>
+            </div>
+          </div>
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <span class="font-display font-semibold text-sm">Hopscotch</span>
+              <span class="font-mono text-sm text-ink/40">~18kb</span>
+            </div>
+            <div class="h-3 rounded-full bg-subtle/60 overflow-hidden">
+              <div class="h-full rounded-full bg-ink/15 transition-all duration-1000" style="width: 100%"></div>
+            </div>
+          </div>
+        </div>
+
+        <p class="mt-6 text-xs text-mid">* 以上数据为 Gzip 压缩后的近似值</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="border-t border-subtle/60 bg-subtle/20">
+    <div class="max-w-7xl mx-auto px-6 lg:px-8 py-16">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-10">
+        <!-- Brand -->
+        <div class="md:col-span-2">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-9 h-9 rounded-xl bg-accent/10 flex items-center justify-center">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="text-accent">
+                <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                <path d="M2 17l10 5 10-5"/>
+                <path d="M2 12l10 5 10-5"/>
+              </svg>
+            </div>
+            <span class="font-display font-bold text-lg tracking-tight">Driver.js</span>
+          </div>
+          <p class="text-sm text-ink/45 max-w-sm leading-relaxed">
+            功能强大、高度可定制的 JavaScript 产品引导库。使用原生 TypeScript 编写，零依赖，MIT 开源许可。
+          </p>
+          <div class="mt-6 flex items-center gap-4">
+            <a href="https://github.com/nilbuild/driver.js" target="_blank" class="w-10 h-10 rounded-xl bg-ink/5 flex items-center justify-center hover:bg-ink/10 transition-colors">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" class="text-ink/50"><path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0112 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/></svg>
+            </a>
+            <a href="https://driverjs.com" target="_blank" class="w-10 h-10 rounded-xl bg-ink/5 flex items-center justify-center hover:bg-ink/10 transition-colors">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-ink/50"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>
+            </a>
+          </div>
+        </div>
+
+        <!-- Links -->
+        <div>
+          <h4 class="font-display font-semibold text-sm tracking-wide uppercase text-ink/30 mb-4">资源</h4>
+          <ul class="space-y-3">
+            <li><a href="https://driverjs.com/docs" target="_blank" class="text-sm text-ink/55 hover:text-accent transition-colors">官方文档</a></li>
+            <li><a href="https://driverjs.com/docs/installation" target="_blank" class="text-sm text-ink/55 hover:text-accent transition-colors">安装指南</a></li>
+            <li><a href="https://driverjs.com/docs/api" target="_blank" class="text-sm text-ink/55 hover:text-accent transition-colors">API 参考</a></li>
+            <li><a href="https://driverjs.com/docs/configuration" target="_blank" class="text-sm text-ink/55 hover:text-accent transition-colors">配置选项</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 class="font-display font-semibold text-sm tracking-wide uppercase text-ink/30 mb-4">社区</h4>
+          <ul class="space-y-3">
+            <li><a href="https://github.com/nilbuild/driver.js" target="_blank" class="text-sm text-ink/55 hover:text-accent transition-colors">GitHub</a></li>
+            <li><a href="https://github.com/nilbuild/driver.js/issues" target="_blank" class="text-sm text-ink/55 hover:text-accent transition-colors">反馈问题</a></li>
+            <li><a href="https://www.npmjs.com/package/driver.js" target="_blank" class="text-sm text-ink/55 hover:text-accent transition-colors">NPM</a></li>
+            <li><a href="https://twitter.com/nilbuild" target="_blank" class="text-sm text-ink/55 hover:text-accent transition-colors">作者 Twitter</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="mt-14 pt-6 border-t border-subtle/60 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <p class="text-xs text-mid">MIT License &copy; Kamran Ahmed. 中文文档由社区翻译。</p>
+        <p class="text-xs text-mid">基于 <a href="https://driverjs.com" target="_blank" class="underline hover:text-accent transition-colors">driverjs.com</a> 官方内容整理</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+
+  <!-- Floating Tour Button -->
+  <button id="btn-tour-float" onclick="startTour()" class="fixed bottom-8 right-8 z-50 flex items-center gap-2 px-5 py-3 bg-accent text-white font-semibold rounded-full shadow-lg shadow-accent/30 hover:bg-accentDark hover:shadow-xl transition-all active:scale-95">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+    体验引导
+  </button>
+
+  <script>
+    // ---- Driver.js Product Tour ----
+    function startTour() {
+      const { driver } = window.driver.js;
+
+      const driverObj = driver({
+        showProgress: true,
+        animate: true,
+        smoothScroll: true,
+        stagePadding: 6,
+        stageRadius: 12,
+        allowClose: true,
+        overlayOpacity: 0.5,
+        popoverClass: 'tour-popover',
+        nextBtnText: '下一步 →',
+        prevBtnText: '← 上一步',
+        doneBtnText: '完成 ✓',
+        progressText: '第 {{current}} 步，共 {{total}} 步',
+        steps: [
+          {
+            popover: {
+              title: '👋 欢迎体验 Driver.js',
+              description: '这是一个使用 Driver.js 构建的交互式产品引导。接下来我们将带你浏览页面的各个部分，帮助你了解这个强大的库。',
+              side: 'bottom',
+              align: 'center'
+            }
+          },
+          {
+            element: '#navbar',
+            popover: {
+              title: '🧭 导航栏',
+              description: '顶部导航栏提供快速跳转到各主要板块的链接。滚动页面时，导航栏会自动添加毛玻璃效果。',
+              side: 'bottom',
+              align: 'center'
+            }
+          },
+          {
+            element: '#hero-heading',
+            popover: {
+              title: '🚀 核心卖点',
+              description: 'Driver.js 是一个仅 5kb 的超轻量库，零依赖、TypeScript 编写，可用于创建产品引导、功能介绍和元素高亮。',
+              side: 'bottom',
+              align: 'start'
+            }
+          },
+          {
+            element: '#hero-code',
+            popover: {
+              title: '💻 代码预览',
+              description: '几行代码就能创建完整的产品引导体验。引入库、定义步骤、调用 drive() —— 就是这么简单！',
+              side: 'left',
+              align: 'start'
+            }
+          },
+          {
+            element: '#features-grid',
+            popover: {
+              title: '✨ 核心特性',
+              description: '极简上手、超轻量、高度可定制、高亮任意元素、生命周期钩子、跨浏览器兼容 —— Driver.js 应有尽有。',
+              side: 'top',
+              align: 'center'
+            }
+          },
+          {
+            element: '#install',
+            popover: {
+              title: '📦 安装方式',
+              description: '支持 npm、pnpm、yarn 三种包管理器安装，也可通过 CDN 直接引入。选择最适合你项目的方式。',
+              side: 'top',
+              align: 'center'
+            }
+          },
+          {
+            element: '#quickstart-code',
+            popover: {
+              title: '⚡ 三步上手',
+              description: '引入 Driver.js → 定义引导步骤 → 调用 drive() 方法。三步搞定，右侧就是完整的代码示例。',
+              side: 'left',
+              align: 'start'
+            }
+          },
+          {
+            element: '#api',
+            popover: {
+              title: '🔧 完整 API',
+              description: 'Driver.js 提供丰富的 API 方法，包括引导控制、状态查询和动态修改，让你完全掌控引导体验。',
+              side: 'top',
+              align: 'center'
+            }
+          },
+          {
+            popover: {
+              title: '🎉 引导完成！',
+              description: '你刚刚体验的就是 Driver.js 的产品引导功能。它仅 5kb、零依赖、高度可定制。现在就把它引入你的项目，为用户打造沉浸式体验吧！',
+              side: 'top',
+              align: 'center'
+            }
+          }
+        ]
+      });
+
+      driverObj.drive();
+    }
+
+    // Nav scroll effect
+    const navbar = document.getElementById('navbar');
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 40) {
+        navbar.classList.add('nav-scrolled');
+      } else {
+        navbar.classList.remove('nav-scrolled');
+      }
+    });
+
+    // Tab switching
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const tab = btn.dataset.tab;
+        // Update active button
+        btn.parentElement.querySelectorAll('.tab-btn').forEach(b => {
+          b.classList.remove('active');
+          b.classList.add('text-mid');
+        });
+        btn.classList.add('active');
+        btn.classList.remove('text-mid');
+        // Show corresponding content
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+        document.getElementById('tab-' + tab).classList.remove('hidden');
+      });
+    });
+
+    // Copy code
+    function copyCode(btn) {
+      const codeBlock = btn.closest('.relative, .group').querySelector('.font-mono');
+      const text = codeBlock.innerText;
+      navigator.clipboard.writeText(text).then(() => {
+        btn.textContent = '已复制!';
+        setTimeout(() => { btn.textContent = '复制'; }, 2000);
+      });
+    }
+
+    // Scroll reveal
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+        }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+    // Smooth scroll for nav links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function(e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    });
+  </script>
+</body>
+</html>
